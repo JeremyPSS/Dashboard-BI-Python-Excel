@@ -16,8 +16,8 @@ def get_data_from_excel():
         nrows=1000,
     )
     return df
-
 df = get_data_from_excel()
+
 
 # ---- SIDEBAR ----
 st.sidebar.header("Filtra datos aqui:")
