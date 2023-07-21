@@ -4,7 +4,6 @@ import streamlit as st
 
 st.set_page_config(page_title="Dashboard productos Agricolas", page_icon=":bar_chart:", layout="wide")
 
-# ---- READ EXCEL USING PANDAS ----
 # ---- READING productos
 @st.cache_data or st.cache_resource
 def get_pro_from_excel():
