@@ -1,45 +1,61 @@
-import pandas as pd  # pip install pandas openpyxl
-import plotly.express as px  # pip install plotly-express
-import streamlit as st  # pip install streamlit
+import pandas as pd 
+import plotly.express as px
+import streamlit as st 
 
 st.set_page_config(page_title="Dashboard productos Agricolas", page_icon=":bar_chart:", layout="wide")
 
-# ---- READ EXCEL ----
+# ---- READ EXCEL USING PANDAS ----
+# ---- READING productos
 @st.cache_data or st.cache_resource
-def get_data_from_excel():
+def get_pro_from_excel():
     df = pd.read_excel(
         io="Expor_Produc_Cons_Precio.xlsx",
         engine="openpyxl",
         sheet_name="th_produccion_v",
-        #skiprows=0,
         usecols="A:E",
         nrows=1000,
     )
     return df
-df = get_data_from_excel()
+df = get_pro_from_excel()
+# ---- READING precio
+@st.cache_data or st.cache_resource
+def get_precio_from_excel():
+    df1 = pd.read_excel(
+        io="Expor_Produc_Cons_Precio.xlsx",
+        engine="openpyxl",
+        sheet_name="th_precio_v",
+        usecols="A:D",
+        nrows=1000,
+    )
+    return df1
+df1 = get_precio_from_excel()
 
-
-# ---- SIDEBAR ----
+# ---- SIDEBAR USING STREAMLIT ----
 st.sidebar.header("Filtra datos aqui:")
 Pais = st.sidebar.multiselect(
     "Selecciona el pais:",
     options=df["pais"].unique(),
-    default=df["pais"].unique()
+    default= "Ecuador"
 )
 
 Anio = st.sidebar.multiselect(
     "Selecciona el año:",
     options=df["anio"].unique(),
-    default=df["anio"].unique(),
+    default= 2016
 )
 
 Producto = st.sidebar.multiselect(
-    "Selecciona el producto:",
+    "Selecciona el producto del top:",
     options=df["producto"].unique(),
     default=df["producto"].unique()
 )
 
+# ---- PUTTING FILTERS FOR EACH DATA MART
 df_selection = df.query(
+    "pais == @Pais & anio ==@Anio & producto == @Producto"
+)
+#Anio1 = st.selectbox('selecciona el año', df1["anio"].unique())
+df1_selection = df1.query(
     "pais == @Pais & anio ==@Anio & producto == @Producto"
 )
 
@@ -48,41 +64,62 @@ st.title(":bar_chart: Dashboard de Analisis de productos agricolas en el mercado
 st.markdown("##")
 
 # TOP KPI's
-total_production = int(df_selection["cantidad_kg"].sum())
-type_production = df_selection["tipo_producto"]
+total_production = int(df_selection["cantidad_kg"].sum()) #total cantidad de produccion por pais, año y produccion
+#type_production = df_selection["tipo_producto"] 
+price_production = round(df1_selection["precio"].sum(),2)#Precio promedio de los productos exportados por pais en un determinado año
+
 
 left_column, middle_column = st.columns(2)
 with left_column:
     st.subheader("Total Produccion:")
     st.subheader(f"{total_production:,} kg")
 with middle_column:
-    st.subheader("Tipo de producto:")
-    st.subheader(f"{type_production}")
+    st.subheader("Precio promedio:")
+    st.subheader(f"$ {price_production}")
 
 st.markdown("""---""")
 
 # SALES BY PRODUCT LINE [BAR CHART]
-sales_by_product_line = (
+cant_by_product_line = (
     df_selection.groupby('producto')['cantidad_kg'].sum()
 )
-fig_product_sales = px.bar(
-    sales_by_product_line,
+fig_product_cant = px.bar(
+    cant_by_product_line,
     x="cantidad_kg",
-    y=sales_by_product_line.index,
+    y=cant_by_product_line.index,
     orientation="h",
     title="<b>Cantidad de kg x Producto</b>",
-    color_discrete_sequence=["#0083B8"] * len(sales_by_product_line),
-    template="plotly_white",
+    color_discrete_sequence=["#0083B8"] * len(cant_by_product_line),
+    template="plotly_dark",
 )
-fig_product_sales.update_layout(
+fig_product_cant.update_layout(
     plot_bgcolor="rgba(0,0,0,0)",
     xaxis=(dict(showgrid=False))
 )
+fig_product_cant_pie = px.pie(
+    cant_by_product_line,
+    values="cantidad_kg",
+    names=cant_by_product_line.index,
+    title="<b>Cantidad de kg x Producto</b>",
+    template="plotly_dark"
+)
+
+precio_by_line = (
+    df1_selection.groupby('producto')['precio'].sum()
+)
+fig_precio = px.line(
+    precio_by_line,
+    x = precio_by_line.index ,
+    y = 'precio',
+    title="<b>Precios</b>",
+)
 
 
-right_column = st.columns(2)
-right_column[0].plotly_chart(fig_product_sales, use_container_width=True)
-
+#right_column = st.columns(2)
+#right_column[0].plotly_chart(fig_product_cant, use_container_width=True)
+st.plotly_chart(fig_product_cant, use_container_width=True)
+st.plotly_chart(fig_product_cant_pie, use_container_width=True)
+st.plotly_chart(fig_precio, use_container_width=True)
 
 # ---- HIDE STREAMLIT STYLE ----
 hide_st_style = """
