@@ -5,7 +5,6 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st 
 import streamlit_authenticator as stauth  
-import cdata.sybase as mod
 
 st.set_page_config(page_title="Dashboard productos Agricolas", page_icon=":bar_chart:", layout="wide")
 
@@ -31,9 +30,7 @@ if authentication_status == None:
     st.warning("Porfavor digita tu usuario y contraseña")
 
 if authentication_status:
-
-    engine = create_engine("sybase///Password=password&User=user")
-    df = pd.read_sql("SELECT * FROM SybaseTable", engine)
+    
 
     # ---- READING productos
     @st.cache_data or st.cache_resource
