@@ -18,8 +18,7 @@ file_path = Path(__file__).parent / "hashed_pw.pkl"
 with file_path.open("rb") as file:
     hashed_passwords = pickle.load(file)
 
-authenticator = stauth.Authenticate(names, usernames, hashed_passwords,
-    "bi_dashboard", "abcdef", cookie_expiry_days=30)
+authenticator = stauth.Authenticate(names, usernames, hashed_passwords,"bi_dashboard", "abcdef", cookie_expiry_days=30)
 
 name, authentication_status, username = authenticator.login("Login", "main")
 
@@ -31,7 +30,6 @@ if authentication_status == None:
 
 if authentication_status:
     
-
     # ---- READING productos
     @st.cache_data or st.cache_resource
     def get_pro_from_excel():
