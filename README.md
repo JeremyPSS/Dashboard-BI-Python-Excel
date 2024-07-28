@@ -10,7 +10,7 @@ Dashboard de Analisis de Clientes en [TEUNO](https://teuno.com/), built in Pytho
 # windows
 python -m venv env
 .\env\Scripts\activate
-pip uninstall -r requirements.txt -y
+pip install -r requirements.txt 
     # quit of the virtual environment
     deactivate
 ```
