@@ -5,6 +5,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st 
 import streamlit_authenticator as stauth  
+import plotly.graph_objects as go
 
 st.set_page_config(page_title="Dashboard productos Agricolas", page_icon=":bar_chart:", layout="wide")
 
@@ -12,141 +13,124 @@ st.set_page_config(page_title="Dashboard productos Agricolas", page_icon=":bar_c
 # --- USER AUTHENTICATION ---
 names = ["Jeremy Prieto", "Oscar Cuenca"]
 usernames = ["jeremyp01", "oscarc01"]
-
 # load hashed passwords
 file_path = Path(__file__).parent / "hashed_pw.pkl"
 with file_path.open("rb") as file:
     hashed_passwords = pickle.load(file)
-
 authenticator = stauth.Authenticate(names, usernames, hashed_passwords,"bi_dashboard", "abcdef", cookie_expiry_days=30)
-
 name, authentication_status, username = authenticator.login("Login", "main")
-
 if authentication_status == False:
     st.error("Usuario/contraseña es incorrecta")
-
 if authentication_status == None:
     st.warning("Porfavor digita tu usuario y contraseña")
-
-if authentication_status:
     
-    # ---- READING productos
+if authentication_status:
+    # ---- READING clientes------------------------------------------------------------------------------------------
     @st.cache_data or st.cache_resource
-    def get_pro_from_excel():
+    def get_cli_from_excel():
         df = pd.read_excel(
-            io="Expor_Produc_Cons_Precio.xlsx",
+            io="clientes_teuno.xlsx",
             engine="openpyxl",
-            sheet_name="th_produccion_v",
-            usecols="A:E",
-            nrows=1000,
+            sheet_name="clientes",
+            usecols="A:N",
+            nrows=102,
         )
         return df
-    df = get_pro_from_excel()
+    df = get_cli_from_excel()
     # ---- READING precio
-    @st.cache_data or st.cache_resource
-    def get_precio_from_excel():
-        df1 = pd.read_excel(
-            io="Expor_Produc_Cons_Precio.xlsx",
-            engine="openpyxl",
-            sheet_name="th_precio_v",
-            usecols="A:D",
-            nrows=1000,
-        )
-        return df1
-    df1 = get_precio_from_excel()
+    # @st.cache_data or st.cache_resource
+    # def get_precio_from_excel():
+    #     df1 = pd.read_excel(
+    #         io="Expor_Produc_Cons_Precio.xlsx",
+    #         engine="openpyxl",
+    #         sheet_name="th_precio_v",
+    #         usecols="A:D",
+    #         nrows=1000,
+    #     )
+    #     return df1
+    # df1 = get_precio_from_excel()
 
-    # ---- SIDEBAR USING STREAMLIT ----
+
+
+    #---- SIDEBAR USING STREAMLIT --------------------------------------------------------------------------------
     authenticator.logout("Logout", "sidebar")
     st.sidebar.title(f"Bienvenido {name}")
     st.sidebar.header("Filtra datos aqui:")
-    Pais = st.sidebar.multiselect(
-        "Selecciona el pais:",
-        options=df["pais"].unique(),
-        default= "Ecuador"
+    UBI = st.sidebar.multiselect(
+        "Selecciona la provincia:",
+        options=df["Ubicacion"].unique(),
+        default=(df["Ubicacion"].unique()).tolist()
+        # default= "Azuay"
     )
-
-    Anio = st.sidebar.multiselect(
-        "Selecciona el año:",
-        options=df["anio"].unique(),
-        default= 2016
-    )
-
-    Producto = st.sidebar.multiselect(
-        "Selecciona el producto del top:",
-        options=df["producto"].unique(),
-        default=df["producto"].unique()
-    )
-
+    # Anio = st.sidebar.multiselect(
+    #     "Selecciona el año:",
+    #     options=df["anio"].unique(),
+    #     default= 2016
+    # )
+    # Producto = st.sidebar.multiselect(
+    #     "Selecciona el producto del top:",
+    #     options=df["producto"].unique(),
+    #     default=df["producto"].unique()
+    # )
     # ---- PUTTING FILTERS FOR EACH DATA MART
     df_selection = df.query(
-        "pais == @Pais & anio ==@Anio & producto == @Producto"
-    )
-    #Anio1 = st.selectbox('selecciona el año', df1["anio"].unique())
-    df1_selection = df1.query(
-        "pais == @Pais & anio ==@Anio & producto == @Producto"
+        "Ubicacion == @UBI"
     )
 
-    # ---- MAINPAGE ----
-    st.title(":bar_chart: Dashboard de Analisis de productos agricolas en el mercado mundial ")
+
+
+    # ---- MAINPAGE -----------------------------------------------------------------------------------------------------
+    st.title(":bar_chart: Dashboard de Analisis de Clientes en TEUNO ")
     st.markdown("##")
-
     # TOP KPI's
-    total_production = int(df_selection["cantidad_kg"].sum()) #total cantidad de produccion por pais, año y produccion
-    #type_production = df_selection["tipo_producto"] 
-    price_production = round(df1_selection["precio"].sum(),2)#Precio promedio de los productos exportados por pais en un determinado año
-
+    # Calcular Tasa de Renovación de Contratos
+    num_contratos = len(df_selection)
+    num_renovados = len(df_selection[df_selection['EstadoRenovacion'] == 'Renovado'])
+    tasa_renovacion = (num_renovados / num_contratos) * 100
+    tasa_renovacion = round(tasa_renovacion,2)
+    # Calcular Tasa de Satisfacción del Cliente
+    num_feedbacks = len(df_selection['Feedback'].dropna())
+    num_feedbacks_positivos = len(df_selection[df_selection['Feedback'].str.contains('Satisfecho|Buen servicio')])
+    tasa_satisfaccion = (num_feedbacks_positivos / num_feedbacks) * 100
+    tasa_satisfaccion = round(tasa_satisfaccion,2)
 
     left_column, middle_column = st.columns(2)
     with left_column:
-        st.subheader("Total Produccion:")
-        st.subheader(f"{total_production:,} kg")
+        st.subheader("Tasa de Renovación de Contratos:")
+        st.subheader(f"{tasa_renovacion:,} %")
     with middle_column:
-        st.subheader("Precio promedio:")
-        st.subheader(f"$ {price_production}")
+        st.subheader("Tasa de Satisfacción del Cliente:")
+        st.subheader(f"{tasa_satisfaccion} %")
 
     st.markdown("""---""")
 
-    # SALES BY PRODUCT LINE [BAR CHART]
-    cant_by_product_line = (
-        df_selection.groupby('producto')['cantidad_kg'].sum()
-    )
-    fig_product_cant = px.bar(
-        cant_by_product_line,
-        x="cantidad_kg",
-        y=cant_by_product_line.index,
-        orientation="h",
-        title="<b>Cantidad de kg x Producto</b>",
-        color_discrete_sequence=["#0083B8"] * len(cant_by_product_line),
-        template="plotly_dark",
-    )
-    fig_product_cant.update_layout(
-        plot_bgcolor="rgba(0,0,0,0)",
-        xaxis=(dict(showgrid=False))
-    )
-    fig_product_cant_pie = px.pie(
-        cant_by_product_line,
-        values="cantidad_kg",
-        names=cant_by_product_line.index,
-        title="<b>Cantidad de kg x Producto</b>",
-        template="plotly_dark"
-    )
+    # -----------------------------------------------------------------------------------------------------
+    # Ejemplo de visualización: Tasa de renovación por tipo de servicio
+    tasa_renovacion_servicio = df_selection.groupby('ServicioContratado')['EstadoRenovacion'].value_counts(normalize=True).unstack().fillna(0)
+    fig = px.bar(tasa_renovacion_servicio, x=tasa_renovacion_servicio.index, y='Renovado', title='Tasa de Renovación por Tipo de Servicio', labels={'Renovado': 'Tasa de Renovación'})
+    
+    # Ejemplo de visualización: Distribución de clientes por tamaño de empresa
+    fig2 = px.pie(df_selection, names='TamanioEmpresa', title='Distribución de Clientes por Tamaño de Empresa')
 
-    precio_by_line = (
-        df1_selection.groupby('producto')['precio'].sum()
-    )
-    fig_precio = px.line(
-        precio_by_line,
-        x = precio_by_line.index ,
-        y = 'precio',
-        title="<b>Precios</b>",
-    )
+    # Ejemplo de visualización: Feedback de clientes
+    feedback_renovacion = df_selection[df_selection['EstadoRenovacion'] == 'No Renovado']['Feedback'].value_counts()
+    fig3 = go.Figure([go.Bar(x=feedback_renovacion.index, y=feedback_renovacion.values)])
+    fig3.update_layout(title='Feedback de Clientes que No Renovaron', xaxis_title='Feedback', yaxis_title='Cantidad')
 
 
-    #right_column = st.columns(2)
-    #right_column[0].plotly_chart(fig_product_cant, use_container_width=True)
-    st.plotly_chart(fig_product_cant, use_container_width=True)
-    st.plotly_chart(fig_product_cant_pie, use_container_width=True)
-    st.plotly_chart(fig_precio, use_container_width=True)
+    # Gráfico de Ingreso Anual del Cliente
+    fig4 = px.bar(df_selection, x='Ubicacion', y='IngresoAnualCliente', title='Ingreso Anual del Cliente por Provincia',
+                        labels={'Ubicacion': 'Ubicacion', 'IngresoAnualCliente': 'Ingreso Anual (USD)'})
+
+    # Gráfico de Duración del Contrato
+    fig5 = px.bar(df_selection, x='Ubicacion', y='DuracionContrato', title='Duración del Contrato por Provincia',
+                        labels={'Ubicacion': 'Ubicacion', 'DuracionContrato': 'Duración del Contrato (meses)'})
+
+    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig3, use_container_width=True)
+    st.plotly_chart(fig4, use_container_width=True)
+    st.plotly_chart(fig5, use_container_width=True)
 
     # ---- HIDE STREAMLIT STYLE ----
     hide_st_style = """
