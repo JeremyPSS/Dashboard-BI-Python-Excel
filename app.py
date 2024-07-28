@@ -7,7 +7,7 @@ import streamlit as st
 import streamlit_authenticator as stauth  
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Dashboard productos Agricolas", page_icon=":bar_chart:", layout="wide")
+st.set_page_config(page_title="Dashboard clientes TEUNO", page_icon=":bar_chart:", layout="wide")
 
 
 # --- USER AUTHENTICATION ---
@@ -37,41 +37,17 @@ if authentication_status:
         )
         return df
     df = get_cli_from_excel()
-    # ---- READING precio
-    # @st.cache_data or st.cache_resource
-    # def get_precio_from_excel():
-    #     df1 = pd.read_excel(
-    #         io="Expor_Produc_Cons_Precio.xlsx",
-    #         engine="openpyxl",
-    #         sheet_name="th_precio_v",
-    #         usecols="A:D",
-    #         nrows=1000,
-    #     )
-    #     return df1
-    # df1 = get_precio_from_excel()
-
-
 
     #---- SIDEBAR USING STREAMLIT --------------------------------------------------------------------------------
     authenticator.logout("Logout", "sidebar")
     st.sidebar.title(f"Bienvenido {name}")
     st.sidebar.header("Filtra datos aqui:")
     UBI = st.sidebar.multiselect(
-        "Selecciona la provincia:",
+        "Selecciona la Ubicacion:",
         options=df["Ubicacion"].unique(),
         default=(df["Ubicacion"].unique()).tolist()
         # default= "Azuay"
     )
-    # Anio = st.sidebar.multiselect(
-    #     "Selecciona el año:",
-    #     options=df["anio"].unique(),
-    #     default= 2016
-    # )
-    # Producto = st.sidebar.multiselect(
-    #     "Selecciona el producto del top:",
-    #     options=df["producto"].unique(),
-    #     default=df["producto"].unique()
-    # )
     # ---- PUTTING FILTERS FOR EACH DATA MART
     df_selection = df.query(
         "Ubicacion == @UBI"

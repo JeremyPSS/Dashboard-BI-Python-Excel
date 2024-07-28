@@ -1,28 +1,30 @@
 
 # Interactive Dashboard with Python – Streamlit
 
-Dashboard de Analisis de productos agricolas en el mercado mundial, built in Python and the Streamlit library 
+Dashboard de Analisis de Clientes en [TEUNO](https://teuno.com/), built in Python and the Streamlit library from a Excel source
+- *hypothetical scenario*
+- Forked from [Sven-Bo/streamlit-sales-dashboard](https://github.com/Sven-Bo/streamlit-sales-dashboard)
+## INSTALLATION
+- Requirements: `Python`
+```Powershell
+# windows
+python -m venv env
+.\env\Scripts\activate
+pip uninstall -r requirements.txt -y
+    # quit of the virtual environment
+    deactivate
+```
 
 ## Run the app
 ```Powershell
 # vanilla terminal
 streamlit run app.py
-
 # quit
 ctrl-c
 ```
-
-## Authors
-- Edited by: Jeremy Prieto
-- Original Template: Sven from Coding Is Fun
-- Website: https://pythonandvba.com
-
-
-
-## Feedback
-
-If you have any feedback, please reach out to me at jeremy2002_prieto@hotmail.com
-
-
-
-
+## Screenshots
+![](/screenshots/Screenshot-01.png)
+![](/screenshots/Screenshot-02.png)
+![](/screenshots/Screenshot-03.png)
+![](/screenshots/Screenshot-04.png)
+![](/screenshots/Screenshot-05.png)
